@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HispanoArgo - Panel de Control</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hero-background {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                        url('https://images.pexels.com/photos/1544946/pexels-photo-1544946.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .dashboard-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen hero-background">
+    <!-- Navigation -->
+    <nav class="bg-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-shield-alt text-2xl text-yellow-500"></i>
+                    <span class="ml-3 text-xl font-bold">HispanoArgo</span>
+                    <span id="userRole" class="ml-3 px-2 py-1 text-xs rounded-full bg-blue-600">Administrador</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Language Selector -->
+                    <div class="relative">
+                        <button id="languageButton" class="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700">
+                            <i class="fas fa-globe"></i>
+                            <span id="currentLanguage">ES</span>
+                        </button>
+                        <div id="languageMenu" class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                            <div class="py-1">
+                                <a href="#" onclick="switchLanguage('es')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <span class="fi fi-es"></span> Español
+                                </a>
+                                <a href="#" onclick="switchLanguage('en')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <span class="fi fi-gb"></span> English
+                                </a>
+                                <a href="#" onclick="switchLanguage('uk')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <span class="fi fi-ua"></span> Українська
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <span id="userName" class="text-sm text-gray-300"></span>
+                    <button onclick="logout()" class="bg-red-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-all">
+                        <i class="fas fa-sign-out-alt mr-2"></i>
+                        <span data-lang="nav.logout">Salir</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Registro de Soldados -->
+            <div class="dashboard-card bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-6 hover:transform hover:scale-105 transition-all cursor-pointer" onclick="window.location.href='index.html'">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-blue-100 rounded-full">
+                        <i class="fas fa-user-plus text-2xl text-blue-600"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-blue-600">Registro</span>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2" data-lang="soldier.registration">Registro de Soldado</h3>
+                <p class="text-gray-600 text-sm">Crear nuevos registros de soldados con información detallada.</p>
+            </div>
+
+            <!-- Gestión de Usuarios -->
+            <div class="dashboard-card bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-6 hover:transform hover:scale-105 transition-all cursor-pointer" onclick="window.location.href='admin.html'">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-green-100 rounded-full">
+                        <i class="fas fa-users-cog text-2xl text-green-600"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-green-600">Usuarios</span>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2" data-lang="admin.userManagement">Gestión de Usuarios</h3>
+                <p class="text-gray-600 text-sm">Administrar usuarios y sus niveles de acceso.</p>
+            </div>
+
+            <!-- Listado de Soldados -->
+            <div class="dashboard-card bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-6 hover:transform hover:scale-105 transition-all cursor-pointer" onclick="window.location.href='soldiers.html'">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-purple-100 rounded-full">
+                        <i class="fas fa-list text-2xl text-purple-600"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-purple-600">Listado</span>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Listado de Soldados</h3>
+                <p class="text-gray-600 text-sm">Ver y gestionar todos los registros de soldados.</p>
+            </div>
+
+            <!-- Reportes -->
+            <div class="dashboard-card bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-6 hover:transform hover:scale-105 transition-all cursor-pointer">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-yellow-100 rounded-full">
+                        <i class="fas fa-chart-bar text-2xl text-yellow-600"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-yellow-600">Reportes</span>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Reportes y Estadísticas</h3>
+                <p class="text-gray-600 text-sm">Generar informes y ver estadísticas del sistema.</p>
+            </div>
+
+            <!-- Configuración -->
+            <div class="dashboard-card bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-6 hover:transform hover:scale-105 transition-all cursor-pointer">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-red-100 rounded-full">
+                        <i class="fas fa-cog text-2xl text-red-600"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-red-600">Config</span>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Configuración</h3>
+                <p class="text-gray-600 text-sm">Ajustes generales del sistema.</p>
+            </div>
+
+            <!-- Ayuda -->
+            <div class="dashboard-card bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-6 hover:transform hover:scale-105 transition-all cursor-pointer">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-indigo-100 rounded-full">
+                        <i class="fas fa-question-circle text-2xl text-indigo-600"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-indigo-600">Ayuda</span>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Centro de Ayuda</h3>
+                <p class="text-gray-600 text-sm">Documentación y soporte del sistema.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="languages.js"></script>
+    <script>
+        // Check authentication
+        function checkAuth() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser || currentUser.role !== 'administrator') {
+                window.location.href = 'login.html';
+                return;
+            }
+            document.getElementById('userName').textContent = currentUser.username;
+        }
+
+        // Language menu toggle
+        const languageButton = document.getElementById('languageButton');
+        const languageMenu = document.getElementById('languageMenu');
+        
+        languageButton.addEventListener('click', () => {
+            languageMenu.classList.toggle('hidden');
+        });
+
+        // Close language menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!languageButton.contains(e.target) && !languageMenu.contains(e.target)) {
+                languageMenu.classList.add('hidden');
+            }
+        });
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+
+        // Initialize
+        checkAuth();
+        updatePageLanguage();
+    </script>
+</body>
+</html>
