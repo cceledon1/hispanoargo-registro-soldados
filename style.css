@@ -1,0 +1,72 @@
+/*
+Theme Name: HispanoArgo
+Theme URI: https://hispanoargo.com
+Author: HispanoArgo Team
+Author URI: https://hispanoargo.com
+Description: A custom WordPress theme for HispanoArgo soldier registration system
+Version: 1.0
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: hispanoargo
+Tags: custom-background, custom-logo, custom-menu, featured-images, threaded-comments, translation-ready
+
+This theme, like WordPress, is licensed under the GPL.
+Use it to make something cool, have fun, and share what you've learned.
+*/
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Base styles */
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.hero-background {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                url('https://images.pexels.com/photos/1544946/pexels-photo-1544946.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.dashboard-card, .admin-card, .login-card {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Form styles */
+.invalid-feedback {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: none;
+}
+
+input:invalid:not(:placeholder-shown) ~ .invalid-feedback,
+select:invalid:not(:placeholder-shown) ~ .invalid-feedback {
+    display: block;
+}
+
+input:invalid:not(:placeholder-shown),
+select:invalid:not(:placeholder-shown) {
+    border-color: #dc2626;
+}
+
+/* Progress bar */
+.progress-bar {
+    height: 4px;
+    background: linear-gradient(to right, #3b82f6 var(--progress), transparent 0);
+    transition: --progress 0.2s ease;
+}
+
+/* File upload */
+.file-upload {
+    position: relative;
+    overflow: hidden;
+}
