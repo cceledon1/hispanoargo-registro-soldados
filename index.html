@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HispanoArgo - Registro de Soldado</title>
+    <!-- Flag Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@6.6.6/css/flag-icons.min.css"/>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hero-background {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                        url('https://images.pexels.com/photos/1544946/pexels-photo-1544946.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .invalid-feedback {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        input:invalid:not(:placeholder-shown) ~ .invalid-feedback,
+        select:invalid:not(:placeholder-shown) ~ .invalid-feedback {
+            display: block;
+        }
+        input:invalid:not(:placeholder-shown),
+        select:invalid:not(:placeholder-shown) {
+            border-color: #dc2626;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+        /* Enhanced form styles */
+        input:focus, select:focus {
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+            outline: none;
+        }
+        input:hover, select:hover {
+            border-color: #60a5fa;
+        }
+        .form-section {
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Button hover effects */
+        button:hover {
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        /* Progress bar */
+        .progress-bar {
+            height: 4px;
+            background: linear-gradient(to right, #3b82f6 var(--progress), transparent 0);
+            transition: --progress 0.2s ease;
+        }
+        /* File upload */
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="min-h-screen hero-background">
+    <!-- Navigation -->
+    <nav class="bg-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-shield-alt text-2xl text-yellow-500"></i>
+                    <span class="ml-3 text-xl font-bold">HispanoArgo</span>
+                    <span id="userRole" class="ml-3 px-2 py-1 text-xs rounded-full"></span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Language Selector -->
+                    <div class="relative">
+                        <button id="languageButton" class="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700">
+                            <i class="fas fa-globe"></i>
+                            <span id="currentLanguage">ES</span>
+                        </button>
+                        <div id="languageMenu" class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                            <div class="py-1">
+                                <a href="#" onclick="switchLanguage('es')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <span class="fi fi-es mr-2"></span> Español
+                                </a>
+                                <a href="#" onclick="switchLanguage('en')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <span class="fi fi-gb mr-2"></span> English
+                                </a>
+                                <a href="#" onclick="switchLanguage('uk')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <span class="fi fi-ua mr-2"></span> Українська
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="dashboard.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700" data-lang="nav.home">Inicio</a>
+                    <a href="soldiers.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700" data-lang="nav.soldiers">Soldados</a>
+                    <a href="admin.html" id="btnAdmin" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700" data-lang="nav.admin">Admin</a>
+                    <div class="flex items-center space-x-2">
+                        <span id="userName" class="text-sm text-gray-300"></span>
+                        <button onclick="logout()" class="bg-red-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-all">
+                            <i class="fas fa-sign-out-alt mr-2"></i>
+                            <span data-lang="nav.logout">Salir</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-6 md:p-8 max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">
+                <i class="fas fa-user-plus text-blue-600 mr-3"></i>
+                <span data-lang="soldier.registration">Registro de Soldado</span>
+            </h1>
+
+            <!-- Progress Bar -->
+            <div class="progress-bar" style="--progress: 0%"></div>
+
+            <!-- Registration Form -->
+            <form id="soldierForm" class="space-y-6" onsubmit="handleSubmit(event)">
+                <!-- Personal Information Section -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 form-section">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4">
+                        <i class="fas fa-user mr-2 text-blue-500"></i>
+                        <span data-lang="soldier.personalInfo">Información Personal</span>
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.nickname">Nick o Apodo</span> *
+                            </label>
+                            <input type="text" name="nickname" required placeholder="Ingrese un apodo"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <div class="invalid-feedback" data-lang="validation.required">Este campo es obligatorio</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.fullName">Nombre Completo</span> *
+                            </label>
+                            <input type="text" name="fullName" required placeholder="Ingrese nombre completo"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <div class="invalid-feedback" data-lang="validation.required">Este campo es obligatorio</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.militaryId">ID Militar</span> *
+                            </label>
+                            <input type="text" name="militaryId" id="idMilitar" required placeholder="Ej. ABC123"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <div class="invalid-feedback" data-lang="validation.militaryId">Ingrese un ID militar válido</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.passport">Número de Pasaporte</span>
+                            </label>
+                            <input type="text" name="passport"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information Section -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 form-section" style="animation-delay: 0.1s">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4">
+                        <i class="fas fa-phone-alt mr-2 text-green-500"></i>
+                        <span data-lang="soldier.contact">Información de Contacto</span>
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Teléfono en Ucrania</span> *
+                            </label>
+                            <input type="tel" name="phone" required placeholder="+380 XX XXX XXXX"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <div class="invalid-feedback" data-lang="validation.phone">Ingrese un número de teléfono válido</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Nacionalidad</span> *
+                            </label>
+                            <select name="nationality" required
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <div class="invalid-feedback" data-lang="validation.nationality">Seleccione una nacionalidad</div>
+                                <option value="">Seleccionar...</option>
+                                <option value="ESP">España</option>
+                                <option value="ARG">Argentina</option>
+                                <option value="MEX">México</option>
+                                <option value="COL">Colombia</option>
+                                <option value="PER">Perú</option>
+                                <option value="CHL">Chile</option>
+                                <option value="ECU">Ecuador</option>
+                                <option value="VEN">Venezuela</option>
+                                <option value="BOL">Bolivia</option>
+                                <option value="PRY">Paraguay</option>
+                                <option value="URY">Uruguay</option>
+                                <option value="GTM">Guatemala</option>
+                                <option value="CRI">Costa Rica</option>
+                                <option value="PAN">Panamá</option>
+                                <option value="DOM">República Dominicana</option>
+                                <option value="CUB">Cuba</option>
+                                <option value="HND">Honduras</option>
+                                <option value="SLV">El Salvador</option>
+                                <option value="NIC">Nicaragua</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emergency Contacts Section -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 form-section" style="animation-delay: 0.2s">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4">
+                        <i class="fas fa-exclamation-circle mr-2 text-red-500"></i>
+                        <span data-lang="soldier.emergency">Contactos de Emergencia</span>
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.emergencyContact1">Contacto de Emergencia 1</span> *
+                            </label>
+                            <input type="text" name="emergencyContact1" required placeholder="Nombre del contacto de emergencia"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <div class="invalid-feedback" data-lang="validation.emergencyContact">Ingrese un contacto de emergencia</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.emergencyPhone1">Número de Contacto 1</span> *
+                            </label>
+                            <input type="tel" name="emergencyPhone1" required placeholder="+380 XX XXX XXXX"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <div class="invalid-feedback" data-lang="validation.phone">Ingrese un número de teléfono válido</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.emergencyContact2">Contacto de Emergencia 2</span>
+                            </label>
+                            <input type="text" name="emergencyContact2"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.emergencyPhone2">Número de Contacto 2</span>
+                            </label>
+                            <input type="tel" name="emergencyPhone2" placeholder="+380 XX XXX XXXX"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Military Information Section -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 form-section" style="animation-delay: 0.3s">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4">
+                        <i class="fas fa-medal mr-2 text-yellow-600"></i>
+                        Información Militar
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.weaponModel">Arma Modelo</span>
+                            </label>
+                            <input type="text" name="weaponModel"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.weaponSerial">N° de Serie del Arma</span>
+                            </label>
+                            <input type="text" name="weaponSerial"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.bloodType">Grupo Sanguíneo</span> *
+                            </label>
+                            <select name="bloodType" required
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <div class="invalid-feedback" data-lang="validation.bloodType">Seleccione un grupo sanguíneo</div>
+                                <option value="">Seleccionar...</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Equipment Information -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 form-section" style="animation-delay: 0.4s">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4">
+                        <i class="fas fa-tshirt mr-2 text-purple-500"></i>
+                        <span data-lang="soldier.equipment">Información de Equipamiento</span>
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.uniformNumber">N° de Uniforme</span>
+                            </label>
+                            <input type="number" name="uniformNumber"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.shirtNumber">N° de Camisa</span>
+                            </label>
+                            <input type="number" name="shirtNumber"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.bootSize">N° de Botas (EU)</span>
+                            </label>
+                            <input type="number" name="bootSize"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents Section -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 form-section" style="animation-delay: 0.5s">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4">
+                        <i class="fas fa-file-alt mr-2 text-indigo-500"></i>
+                        Documentos
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Contract Date -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.contractDate">Firma de Contrato</span> *
+                            </label>
+                            <input type="date" name="contractDate" required
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- Contract Document -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.contractDocument">Documento de Contrato</span>
+                            </label>
+                            <div class="file-upload relative">
+                                <input type="file" name="contractDocument" accept=".pdf,.jpg,.jpeg"
+                                    class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-50 cursor-pointer">
+                                <div class="upload-progress w-0"></div>
+                            </div>
+                        </div>
+
+                        <!-- Fiscal Code -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.fiscalCode">Código Fiscal</span> *
+                            </label>
+                            <input type="text" name="fiscalCode" required
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- Fiscal Code Photos -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.fiscalCodePhotos">Fotos de Código Fiscal</span>
+                            </label>
+                            <div class="file-upload relative">
+                                <input type="file" name="fiscalCodePhotos" accept=".jpg,.jpeg,.png" multiple
+                                    class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-50 cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- Bank Account -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.bankAccount">Número de Cuenta Bancaria</span> *
+                            </label>
+                            <input type="text" name="bankAccount" required
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- Bank Account Photo -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.bankAccountPhoto">Foto de Cuenta Bancaria</span>
+                            </label>
+                            <div class="file-upload relative">
+                                <input type="file" name="bankAccountPhoto" accept=".jpg,.jpeg,.png"
+                                    class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-50 cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- Passport Photo -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.passportPhoto">Foto de Pasaporte</span>
+                            </label>
+                            <div class="file-upload relative">
+                                <input type="file" name="passportPhoto" accept=".jpg,.jpeg,.png"
+                                    class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-50 cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- Passport Translation Photo -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.passportTranslationPhoto">Foto de Traducción de Pasaporte</span>
+                            </label>
+                            <div class="file-upload relative">
+                                <input type="file" name="passportTranslationPhoto" accept=".jpg,.jpeg,.png"
+                                    class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-50 cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- Fiscal Code -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.fiscalCode">Código Fiscal</span> *
+                            </label>
+                            <input type="text" name="fiscalCode" required
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- Fiscal Code Photos -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.fiscalCodePhotos">Fotos de Código Fiscal</span>
+                            </label>
+                            <div class="file-upload relative">
+                                <input type="file" name="fiscalCodePhotos" accept=".jpg,.jpeg,.png" multiple
+                                    class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-50 cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- Bank Account -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.bankAccount">Número de Cuenta Bancaria</span> *
+                            </label>
+                            <input type="text" name="bankAccount" required
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- Bank Account Photo -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.bankAccountPhoto">Foto de Cuenta Bancaria</span>
+                            </label>
+                            <div class="file-upload relative">
+                                <input type="file" name="bankAccountPhoto" accept=".jpg,.jpeg,.png"
+                                    class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-50 cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- Passport Photo -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.passportPhoto">Foto de Pasaporte</span>
+                            </label>
+                            <div class="file-upload relative">
+                                <input type="file" name="passportPhoto" accept=".jpg,.jpeg,.png"
+                                    class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-50 cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- Passport Translation Photo -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.passportTranslationPhoto">Foto de Traducción de Pasaporte</span>
+                            </label>
+                            <div class="file-upload relative">
+                                <input type="file" name="passportTranslationPhoto" accept=".jpg,.jpeg,.png"
+                                    class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-50 cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-4">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        <span data-lang="validation.fileFormat">Formatos permitidos: PDF, JPG, PNG (máx. 5MB)</span>
+                    </p>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end space-x-4">
+                    <button type="button"
+                        class="px-6 py-3 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all transform hover:scale-105 active:scale-95">
+                        <i class="fas fa-times mr-2"></i>
+                        <span data-lang="soldier.cancel">Cancelar</span>
+                    </button>
+                    <button type="submit"
+                        class="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform hover:scale-105 active:scale-95 hover:shadow-lg">
+                        <i class="fas fa-save mr-2"></i>
+                        <span data-lang="soldier.save">Guardar Registro</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white mt-12">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm">© 2024 HispanoArgo. Todos los derechos reservados.</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-sm hover:text-gray-300">Términos y Condiciones</a>
+                    <a href="#" class="text-sm hover:text-gray-300">Política de Privacidad</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="languages.js"></script>
+    <script>
+        // Check authentication
+        function checkAuth() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Update UI based on role
+            const userRole = document.getElementById('userRole');
+            const userName = document.getElementById('userName');
+            const btnRegistro = document.getElementById('btnRegistro');
+            const btnAdmin = document.getElementById('btnAdmin');
+            const submitBtn = document.querySelector('button[type="submit"]');
+            const form = document.getElementById('soldierForm');
+
+            userName.textContent = currentUser.username;
+
+            switch (currentUser.role) {
+                case 'administrator':
+                    userRole.textContent = 'Administrador';
+                    userRole.classList.add('bg-blue-600');
+                    // Enable all functionality
+                    break;
+                case 'editor':
+                    userRole.textContent = 'Editor';
+                    userRole.classList.add('bg-green-600');
+                    btnAdmin.style.display = 'none';
+                    // Disable certain fields
+                    form.querySelectorAll('input, select').forEach(input => {
+                        if (input.type !== 'submit') {
+                            input.disabled = true;
+                        }
+                    });
+                    break;
+                case 'viewer':
+                    userRole.textContent = 'Visualizador';
+                    userRole.classList.add('bg-yellow-600');
+                    btnAdmin.style.display = 'none';
+                    btnRegistro.style.display = 'none';
+                    submitBtn.style.display = 'none';
+                    // Make form read-only
+                    form.querySelectorAll('input, select, button').forEach(input => {
+                        input.disabled = true;
+                    });
+                    break;
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+
+        // Initialize
+        checkAuth();
+        updatePageLanguage();
+
+        // Update current language display
+        const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+        document.getElementById('currentLanguage').textContent = currentLang.toUpperCase();
+
+        // Language menu toggle
+        const languageButton = document.getElementById('languageButton');
+        const languageMenu = document.getElementById('languageMenu');
+        
+        languageButton.addEventListener('click', () => {
+            languageMenu.classList.toggle('hidden');
+        });
+
+        // Close language menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!languageButton.contains(e.target) && !languageMenu.contains(e.target)) {
+                languageMenu.classList.add('hidden');
+            }
+        });
+
+        // Save soldier data
+        function saveSoldier(formData) {
+            const soldiers = JSON.parse(localStorage.getItem('soldiers')) || [];
+            const existingSoldierIndex = soldiers.findIndex(s => s.militaryId === formData.militaryId);
+
+            if (existingSoldierIndex >= 0) {
+                soldiers[existingSoldierIndex] = { ...soldiers[existingSoldierIndex], ...formData };
+            } else {
+                soldiers.push(formData);
+            }
+
+            localStorage.setItem('soldiers', JSON.stringify(soldiers));
+        }
+
+        // Load soldier data if editing
+        function loadSoldier() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            const mode = urlParams.get('mode');
+
+            if (id) {
+                const soldiers = JSON.parse(localStorage.getItem('soldiers')) || [];
+                const soldier = soldiers.find(s => s.militaryId === id);
+
+                if (soldier) {
+                    // Update form title for edit/view mode
+                    const title = document.querySelector('h1 span[data-lang="soldier.registration"]');
+                    title.textContent = mode === 'view' ? 'Ver Soldado' : 'Editar Soldado';
+                    title.setAttribute('data-lang', mode === 'view' ? 'soldier.view' : 'soldier.edit');
+
+                    // Fill form fields
+                    Object.entries(soldier).forEach(([key, value]) => {
+                        const input = form.querySelector(`[name="${key}"]`);
+                        if (input) {
+                            if (input.type === 'file') {
+                                // Handle file display if available
+                                if (value) {
+                                    const fileInfo = document.createElement('div');
+                                    fileInfo.className = 'mt-2 text-sm text-gray-600 flex items-center';
+                                    fileInfo.innerHTML = `
+                                        <i class="fas fa-file mr-2 text-blue-500"></i>
+                                        ${value}
+                                    `;
+                                    input.parentElement.appendChild(fileInfo);
+                                }
+                            } else {
+                                input.value = value;
+                            }
+                        }
+                    });
+
+                    // Update form controls based on mode
+                    if (mode === 'view') {
+                        // Disable all form controls
+                        form.querySelectorAll('input, select, button').forEach(input => {
+                            input.disabled = true;
+                        });
+                        
+                        // Hide submit button
+                        form.querySelector('button[type="submit"]').style.display = 'none';
+                        
+                        // Show back button
+                        const backButton = form.querySelector('button[type="button"]');
+                        backButton.innerHTML = '<i class="fas fa-arrow-left mr-2"></i><span data-lang="common.back">Volver</span>';
+                        backButton.onclick = () => window.location.href = 'soldiers.html';
+                    }
+
+                    // Update progress bar
+                    updateProgress();
+                }
+            }
+        }
+
+        // Initialize form
+        loadSoldier();
+
+        // Progress tracking
+        const form = document.getElementById('soldierForm');
+        const requiredFields = form.querySelectorAll('[required]');
+        const progressBar = document.querySelector('.progress-bar');
+        
+        function updateProgress() {
+            const total = requiredFields.length;
+            const filled = Array.from(requiredFields).filter(field => {
+                if (field.type === 'file') {
+                    return field.files.length > 0;
+                }
+                return field.value.trim() !== '';
+            }).length;
+            const progress = (filled / total) * 100;
+            progressBar.style.setProperty('--progress', `${progress}%`);
+        }
+        
+        requiredFields.forEach(field => {
+            field.addEventListener('input', updateProgress);
+            field.addEventListener('change', updateProgress);
+        });
+
+        // Form submission handler
+        function handleSubmit(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = {
+                // Personal Information
+                nickname: form.querySelector('[name="nickname"]').value,
+                fullName: form.querySelector('[name="fullName"]').value,
+                militaryId: form.querySelector('[name="militaryId"]').value,
+                passport: form.querySelector('[name="passport"]').value,
+                
+                // Contact Information
+                phone: form.querySelector('[name="phone"]').value,
+                nationality: form.querySelector('[name="nationality"]').value,
+                
+                // Emergency Contacts
+                emergencyContact1: form.querySelector('[name="emergencyContact1"]').value,
+                emergencyPhone1: form.querySelector('[name="emergencyPhone1"]').value,
+                emergencyContact2: form.querySelector('[name="emergencyContact2"]').value,
+                emergencyPhone2: form.querySelector('[name="emergencyPhone2"]').value,
+                
+                // Military Information
+                weaponModel: form.querySelector('[name="weaponModel"]').value,
+                weaponSerial: form.querySelector('[name="weaponSerial"]').value,
+                bloodType: form.querySelector('[name="bloodType"]').value,
+                
+                // Equipment Information
+                uniformNumber: form.querySelector('[name="uniformNumber"]').value,
+                shirtNumber: form.querySelector('[name="shirtNumber"]').value,
+                bootSize: form.querySelector('[name="bootSize"]').value,
+                
+                // Contract Information
+                contractDate: form.querySelector('[name="contractDate"]').value,
+                
+                // System Fields
+                status: 'active',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+
+            // Get the submit button
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Procesando...';
+            
+            // Simulate API call
+            setTimeout(() => {
+                try {
+                    // Save data
+                    saveSoldier(formData);
+
+                    // Show success notification
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center transform translate-y-0 opacity-100 transition-all';
+                    notification.innerHTML = `
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span data-lang="soldier.saveSuccess">Registro guardado exitosamente</span>
+                    `;
+                    document.body.appendChild(notification);
+
+                    // Reset form if not in edit mode
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (!urlParams.get('id')) {
+                        form.reset();
+                        updateProgress();
+                    }
+
+                    // Animate notification out
+                    setTimeout(() => {
+                        notification.style.transform = 'translateY(10px)';
+                        notification.style.opacity = '0';
+                        setTimeout(() => {
+                            notification.remove();
+                            // Redirect to list after successful save
+                            window.location.href = 'soldiers.html';
+                        }, 300);
+                    }, 2000);
+                } catch (error) {
+                    // Show error notification
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center';
+                    notification.innerHTML = `
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <span data-lang="soldier.saveError">Error al guardar el registro</span>
+                    `;
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => notification.remove(), 3000);
+                } finally {
+                    // Reset button state
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }
+            }, 1000);
+        }
+
+        // Phone number formatting
+        const phoneInputs = document.querySelectorAll('input[type="tel"]');
+        phoneInputs.forEach(input => {
+            input.addEventListener('input', function(e) {
+                // Remove any non-digit characters
+                let value = this.value.replace(/\D/g, '');
+                
+                // Format as international phone number
+                if (value.length > 0) {
+                    if (!value.startsWith('380')) { // Ukraine country code
+                        value = '380' + value;
+                    }
+                    // Format: +380 XX XXX XXXX
+                    if (value.length > 3) {
+                        value = value.slice(0, 3) + ' ' + value.slice(3);
+                    }
+                    if (value.length > 6) {
+                        value = value.slice(0, 6) + ' ' + value.slice(6);
+                    }
+                    if (value.length > 10) {
+                        value = value.slice(0, 10) + ' ' + value.slice(10);
+                    }
+                    value = '+' + value;
+                }
+                
+                this.value = value;
+            });
+        });
+
+        // File upload handling
+        const fileInput = document.querySelector('input[type="file"]');
+        fileInput.addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (file) {
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                if (file.size > maxSize) {
+                    alert('El archivo es demasiado grande. El tamaño máximo permitido es 5MB.');
+                    this.value = '';
+                    return;
+                }
+
+                // Simulate upload progress
+                const progressBar = this.parentElement.querySelector('.upload-progress');
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    progressBar.style.width = `${progress}%`;
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            progressBar.style.width = '0';
+                        }, 500);
+                    }
+                }, 100);
+
+                // Show file info
+                const fileInfo = document.createElement('div');
+                fileInfo.className = 'mt-2 text-sm text-gray-600 flex items-center';
+                const icon = file.type.includes('pdf') ? 'fa-file-pdf' : 'fa-file-image';
+                fileInfo.innerHTML = `
+                    <i class="fas ${icon} mr-2 text-blue-500"></i>
+                    ${file.name} (${(file.size / 1024).toFixed(1)}KB)
+                `;
+                
+                // Remove previous file info if exists
+                const previousInfo = this.parentElement.parentElement.querySelector('.text-sm:not(:first-child)');
+                if (previousInfo) {
+                    previousInfo.remove();
+                }
+                
+                this.parentElement.parentElement.appendChild(fileInfo);
+                updateProgress(); // Update form progress
+            }
+        });
+
+        // ID Militar validation
+        const idMilitarInput = document.querySelector('input[id="idMilitar"]');
+        idMilitarInput.addEventListener('input', function(e) {
+            const value = this.value.toUpperCase();
+            // Allow only letters and numbers
+            this.value = value.replace(/[^A-Z0-9]/g, '');
+            updateProgress(); // Update form progress
+        });
+    </script>
+</body>
+</html>
