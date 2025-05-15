@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HispanoArgo - Registro de Soldado</title>
+    <!-- Flag Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@6.6.6/css/flag-icons.min.css"/>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hero-background {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                        url('https://images.pexels.com/photos/1544946/pexels-photo-1544946.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .invalid-feedback {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        input:invalid:not(:placeholder-shown) ~ .invalid-feedback,
+        select:invalid:not(:placeholder-shown) ~ .invalid-feedback {
+            display: block;
+        }
+        input:invalid:not(:placeholder-shown),
+        select:invalid:not(:placeholder-shown) {
+            border-color: #dc2626;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus {
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+            outline: none;
+        }
+        input:hover, select:hover {
+            border-color: #60a5fa;
+        }
+        .form-section {
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        button:hover {
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        .progress-bar {
+            height: 4px;
+            background: linear-gradient(to right, #3b82f6 var(--progress), transparent 0);
+            transition: --progress 0.2s ease;
+        }
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+        }
+        .file-preview {
+            max-width: 150px;
+            max-height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+        .upload-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 2px;
+            background-color: #3b82f6;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen hero-background">
+    <!-- Navigation -->
+    <nav class="bg-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-shield-alt text-2xl text-yellow-500"></i>
+                    <span class="ml-3 text-xl font-bold">HispanoArgo</span>
+                    <span id="userRole" class="ml-3 px-2 py-1 text-xs rounded-full"></span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Language Selector -->
+                    <div class="relative">
+                        <button id="languageButton" class="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700">
+                            <i class="fas fa-globe"></i>
+                            <span id="currentLanguage">ES</span>
+                        </button>
+                        <div id="languageMenu" class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                            <div class="py-1">
+                                <a href="#" onclick="switchLanguage('es')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <span class="fi fi-es mr-2"></span> Español
+                                </a>
+                                <a href="#" onclick="switchLanguage('en')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <span class="fi fi-gb mr-2"></span> English
+                                </a>
+                                <a href="#" onclick="switchLanguage('uk')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <span class="fi fi-ua mr-2"></span> Українська
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="dashboard.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700">Dashboard</a>
+                    <a href="soldiers.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700">Soldados</a>
+                    <button onclick="logout()" class="bg-red-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-all">
+                        <i class="fas fa-sign-out-alt mr-2"></i>
+                        <span data-lang="nav.logout">Salir</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-6 md:p-8 max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">
+                <i class="fas fa-user-plus text-blue-600 mr-3"></i>
+                <span data-lang="soldier.registration">Registro de Soldado</span>
+            </h1>
+
+            <!-- Progress Bar -->
+            <div class="progress-bar" style="--progress: 0%"></div>
+
+            <!-- Registration Form -->
+            <form id="soldierForm" class="space-y-6" onsubmit="handleSubmit(event)">
+                <!-- Personal Information Section -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 form-section">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4">
+                        <i class="fas fa-user mr-2 text-blue-500"></i>
+                        <span data-lang="soldier.personalInfo">Información Personal</span>
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.nickname">Nick o Apodo</span> *
+                            </label>
+                            <input type="text" name="nickname" required placeholder="Ingrese un apodo"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                            <div class="invalid-feedback" data-lang="validation.required">Este campo es obligatorio</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.fullName">Nombre Completo</span> *
+                            </label>
+                            <input type="text" name="fullName" required placeholder="Ingrese nombre completo"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                            <div class="invalid-feedback" data-lang="validation.required">Este campo es obligatorio</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.militaryId">ID Militar</span> *
+                            </label>
+                            <input type="text" name="militaryId" required placeholder="Ej. ABC123"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                            <div class="invalid-feedback" data-lang="validation.required">Este campo es obligatorio</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.passport">Número de Pasaporte</span>
+                            </label>
+                            <input type="text" name="passport" placeholder="Ingrese número de pasaporte"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents Section -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 form-section">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4">
+                        <i class="fas fa-file-alt mr-2 text-indigo-500"></i>
+                        <span data-lang="soldier.documents">Documentos</span>
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Fiscal Code -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.fiscalCode">Código Fiscal</span> *
+                            </label>
+                            <input type="text" name="fiscalCode" required placeholder="Ingrese código fiscal"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                            <div class="invalid-feedback" data-lang="validation.required">Este campo es obligatorio</div>
+                        </div>
+
+                        <!-- Fiscal Code Photos -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.fiscalCodePhotos">Fotografías del Código Fiscal</span>
+                            </label>
+                            <div class="file-upload relative">
+                                <input type="file" name="fiscalCodePhotos" accept=".jpg,.jpeg,.png" multiple
+                                    class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 hover:bg-gray-50 cursor-pointer">
+                                <div class="upload-progress w-0"></div>
+                            </div>
+                            <div class="file-preview-container mt-2 grid grid-cols-2 gap-2"></div>
+                        </div>
+
+                        <!-- Bank Account -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.bankAccount">Número de Cuenta Bancaria</span> *
+                            </label>
+                            <input type="text" name="bankAccount" required placeholder="Ingrese número de cuenta"
+                                class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                            <div class="invalid-feedback" data-lang="validation.required">Este campo es obligatorio</div>
+                        </div>
+
+                        <!-- Bank Account Photo -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.bankAccountPhoto">Foto del Comprobante de Cuenta Bancaria</span>
+                            </label>
+                            <div class="file-upload relative">
+                                <input type="file" name="bankAccountPhoto" accept=".jpg,.jpeg,.png"
+                                    class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 hover:bg-gray-50 cursor-pointer">
+                                <div class="upload-progress w-0"></div>
+                            </div>
+                            <div class="file-preview-container mt-2"></div>
+                        </div>
+
+                        <!-- Passport Photo -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.passportPhoto">Fotografía del Pasaporte</span>
+                            </label>
+                            <div class="file-upload relative">
+                                <input type="file" name="passportPhoto" accept=".jpg,.jpeg,.png"
+                                    class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 hover:bg-gray-50 cursor-pointer">
+                                <div class="upload-progress w-0"></div>
+                            </div>
+                            <div class="file-preview-container mt-2"></div>
+                        </div>
+
+                        <!-- Passport Translation Photo -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span data-lang="soldier.passportTranslationPhoto">Fotografía de la Traducción del Pasaporte</span>
+                            </label>
+                            <div class="file-upload relative">
+                                <input type="file" name="passportTranslationPhoto" accept=".jpg,.jpeg,.png"
+                                    class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 hover:bg-gray-50 cursor-pointer">
+                                <div class="upload-progress w-0"></div>
+                            </div>
+                            <div class="file-preview-container mt-2"></div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-4">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        <span data-lang="validation.fileFormat">Formatos permitidos: JPG, PNG (máx. 5MB)</span>
+                    </p>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="window.location.href='soldiers.html'"
+                        class="px-6 py-3 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all">
+                        <i class="fas fa-times mr-2"></i>
+                        <span data-lang="soldier.cancel">Cancelar</span>
+                    </button>
+                    <button type="submit"
+                        class="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all">
+                        <i class="fas fa-save mr-2"></i>
+                        <span data-lang="soldier.save">Guardar Registro</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="languages.js"></script>
+    <script>
+        // Previous JavaScript code here
+        ${previousJavaScriptCode}
+    </script>
+</body>
+</html>
