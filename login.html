@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HispanoArgo - Login</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Flag Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@6.6.6/css/flag-icons.min.css"/>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hero-background {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                        url('https://images.pexels.com/photos/1544946/pexels-photo-1544946.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .login-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen hero-background flex items-center justify-center">
+    <!-- Language Selector -->
+    <div class="fixed top-4 right-4">
+        <div class="relative">
+            <button id="languageButton" class="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium bg-white/10 hover:bg-white/20 text-white transition-all">
+                <i class="fas fa-globe"></i>
+                <span id="currentLanguage">ES</span>
+            </button>
+            <div id="languageMenu" class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                <div class="py-1">
+                    <a href="#" onclick="switchLanguage('es')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        <span class="fi fi-es mr-2"></span> Español
+                    </a>
+                    <a href="#" onclick="switchLanguage('en')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        <span class="fi fi-gb mr-2"></span> English
+                    </a>
+                    <a href="#" onclick="switchLanguage('uk')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        <span class="fi fi-ua mr-2"></span> Українська
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="login-card max-w-md mx-auto bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-8">
+            <!-- Logo y Título -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-600 text-white mb-4">
+                    <i class="fas fa-shield-alt text-2xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">HispanoArgo</h1>
+                <p class="text-gray-600 mt-2" data-lang="login.title">Sistema de Registro de Soldados</p>
+            </div>
+
+
+
+            <!-- Formulario de Login -->
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-user mr-2"></i><span data-lang="login.username">Usuario</span>
+                    </label>
+                    <input type="text" required autocomplete="username"
+                        class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        placeholder="Ingrese su usuario" data-lang="placeholder.username">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-lock mr-2"></i><span data-lang="login.password">Contraseña</span>
+                    </label>
+                    <div class="relative">
+                        <input type="password" required autocomplete="current-password"
+                            class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                            placeholder="Ingrese su contraseña" data-lang="placeholder.password">
+                        <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                            onclick="togglePassword(this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between text-sm">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="remember" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <label for="remember" class="ml-2 text-gray-700" data-lang="login.remember">Recordarme</label>
+                    </div>
+                    <a href="#" class="text-blue-600 hover:text-blue-800" data-lang="login.forgotPassword">¿Olvidó su contraseña?</a>
+                </div>
+
+                <button type="submit"
+                    class="w-full px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform hover:scale-105 active:scale-95">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    <span data-lang="login.loginButton">Iniciar Sesión</span>
+                </button>
+            </form>
+
+            <!-- Mensaje de Error -->
+            <div id="errorMessage" class="hidden mt-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <span data-lang="login.error">Usuario o contraseña incorrectos</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="languages.js"></script>
+    <script>
+        // Toggle password visibility
+        function togglePassword(button) {
+            const input = button.parentElement.querySelector('input');
+            const icon = button.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Initialize default users if none exist
+        function initializeUsers() {
+            const credentials = JSON.parse(localStorage.getItem('credentials'));
+            if (!credentials) {
+                const defaultUsers = [
+                    { username: 'admin', password: 'admin123', role: 'administrator' },
+                    { username: 'editor', password: 'editor123', role: 'editor' },
+                    { username: 'viewer', password: 'viewer123', role: 'viewer' }
+                ];
+                localStorage.setItem('credentials', JSON.stringify(defaultUsers));
+                localStorage.setItem('users', JSON.stringify(defaultUsers.map(({ username, role }) => ({ username, role }))));
+            }
+        }
+
+        // Form submission
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = this.querySelector('input[type="text"]').value;
+            const password = this.querySelector('input[type="password"]').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const submitBtn = this.querySelector('button[type="submit"]');
+            
+            // Show loading state
+            submitBtn.disabled = true;
+                submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i><span data-lang="login.verifying">Verificando...</span>`;
+            
+            // Simulate API call
+            setTimeout(() => {
+                const credentials = JSON.parse(localStorage.getItem('credentials')) || [];
+                const user = credentials.find(u => u.username === username && u.password === password);
+                
+                if (user) {
+                    // Show success message
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center transform translate-y-0 opacity-100 transition-all';
+                    notification.innerHTML = `
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span data-lang="login.success">Inicio de sesión exitoso</span>
+                    `;
+                    document.body.appendChild(notification);
+
+                    // Store user info in localStorage
+                    const userData = {
+                        username: user.username,
+                        role: user.role
+                    };
+                    localStorage.setItem('currentUser', JSON.stringify(userData));
+                    console.log('User data stored:', userData);
+                    
+                    // Animate notification and redirect
+                    setTimeout(() => {
+                        notification.style.transform = 'translateY(10px)';
+                        notification.style.opacity = '0';
+                        setTimeout(() => {
+                            notification.remove();
+                            // Redirect based on role
+                            const redirectUrl = user.role === 'administrator' ? 'dashboard.html' : 'index.html';
+                            console.log('Redirecting to:', redirectUrl);
+                            window.location.replace(redirectUrl);
+                        }, 300);
+                    }, 1000);
+                } else {
+                    // Show error message
+                    errorMessage.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i><span data-lang="login.loginButton">Iniciar Sesión</span>';
+                    
+                    // Hide error message after 3 seconds
+                    setTimeout(() => {
+                        errorMessage.classList.add('hidden');
+                    }, 3000);
+                }
+            }, 1000);
+        });
+
+        // Language menu toggle
+        const languageButton = document.getElementById('languageButton');
+        const languageMenu = document.getElementById('languageMenu');
+        
+        languageButton.addEventListener('click', () => {
+            languageMenu.classList.toggle('hidden');
+        });
+
+        // Close language menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!languageButton.contains(e.target) && !languageMenu.contains(e.target)) {
+                languageMenu.classList.add('hidden');
+            }
+        });
+
+        // Initialize
+        initializeUsers();
+        updatePageLanguage();
+
+        // Update current language display
+        const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+        document.getElementById('currentLanguage').textContent = currentLang.toUpperCase();
+    </script>
+</body>
+</html>
