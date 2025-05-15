@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HispanoArgo - Listado de Soldados</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Flag Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@6.6.6/css/flag-icons.min.css"/>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hero-background {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                        url('https://images.pexels.com/photos/1544946/pexels-photo-1544946.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .table-container {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen hero-background">
+    <!-- Navigation -->
+    <nav class="bg-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-shield-alt text-2xl text-yellow-500"></i>
+                    <span class="ml-3 text-xl font-bold">HispanoArgo</span>
+                    <span id="userRole" class="ml-3 px-2 py-1 text-xs rounded-full"></span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Language Selector -->
+                    <div class="relative">
+                        <button id="languageButton" class="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700">
+                            <i class="fas fa-globe"></i>
+                            <span id="currentLanguage">ES</span>
+                        </button>
+                        <div id="languageMenu" class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                            <div class="py-1">
+                                <a href="#" onclick="switchLanguage('es')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <span class="fi fi-es mr-2"></span> Español
+                                </a>
+                                <a href="#" onclick="switchLanguage('en')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <span class="fi fi-gb mr-2"></span> English
+                                </a>
+                                <a href="#" onclick="switchLanguage('uk')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <span class="fi fi-ua mr-2"></span> Українська
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="dashboard.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700">Dashboard</a>
+                    <span id="userName" class="text-sm text-gray-300"></span>
+                    <button onclick="logout()" class="bg-red-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-all">
+                        <i class="fas fa-sign-out-alt mr-2"></i>
+                        <span data-lang="nav.logout">Salir</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-6">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">
+                    <i class="fas fa-users text-blue-600 mr-3"></i>
+                    <span data-lang="nav.soldiers">Listado de Soldados</span>
+                </h1>
+                <div class="flex space-x-4">
+                    <button onclick="exportToExcel()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-all">
+                        <i class="fas fa-file-excel mr-2"></i>Excel
+                    </button>
+                    <button onclick="exportToPDF()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all">
+                        <i class="fas fa-file-pdf mr-2"></i>PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="relative">
+                    <input type="text" id="searchInput" placeholder="Buscar soldado..."
+                        class="w-full pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <select id="nationalityFilter" class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                    <option value="">Todas las nacionalidades</option>
+                </select>
+                <select id="statusFilter" class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                    <option value="">Todos los estados</option>
+                    <option value="active">Activo</option>
+                    <option value="inactive">Inactivo</option>
+                </select>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Militar</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nacionalidad</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código Fiscal</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuenta Bancaria</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="soldiersTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Soldiers will be added here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="mt-4 flex items-center justify-between">
+                <div class="text-sm text-gray-700">
+                    Mostrando <span id="startRange">1</span> a <span id="endRange">10</span> de <span id="totalItems">0</span> resultados
+                </div>
+                <div class="flex space-x-2">
+                    <button id="prevPage" class="px-3 py-1 border rounded-md hover:bg-gray-50">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button id="nextPage" class="px-3 py-1 border rounded-md hover:bg-gray-50">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="languages.js"></script>
+    <script>
+        // Check authentication
+        function checkAuth() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Update UI based on role
+            const userRole = document.getElementById('userRole');
+            const userName = document.getElementById('userName');
+
+            userName.textContent = currentUser.username;
+
+            switch (currentUser.role) {
+                case 'administrator':
+                    userRole.textContent = 'Administrador';
+                    userRole.classList.add('bg-blue-600');
+                    break;
+                case 'editor':
+                    userRole.textContent = 'Editor';
+                    userRole.classList.add('bg-green-600');
+                    break;
+                case 'viewer':
+                    userRole.textContent = 'Visualizador';
+                    userRole.classList.add('bg-yellow-600');
+                    break;
+            }
+        }
+
+        // Load and display soldiers
+        function loadSoldiers() {
+            const soldiers = JSON.parse(localStorage.getItem('soldiers')) || [];
+            const tbody = document.getElementById('soldiersTableBody');
+            tbody.innerHTML = '';
+
+            soldiers.forEach(soldier => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${soldier.militaryId}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${soldier.fullName}</div>
+                        <div class="text-sm text-gray-500">${soldier.nickname}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="fi fi-${soldier.nationality.toLowerCase()} mr-2"></span>
+                        ${soldier.nationality}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${soldier.fiscalCode || '-'}</div>
+                        ${soldier.fiscalCodePhotos ? '<i class="fas fa-image text-blue-500 ml-2" title="Tiene fotos"></i>' : ''}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${soldier.bankAccount || '-'}</div>
+                        ${soldier.bankAccountPhoto ? '<i class="fas fa-image text-blue-500 ml-2" title="Tiene foto"></i>' : ''}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded-full ${
+                            soldier.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }">
+                            ${soldier.status === 'active' ? 'Activo' : 'Inactivo'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm flex items-center space-x-2">
+                        <button onclick="viewSoldier('${soldier.militaryId}')" class="text-blue-600 hover:text-blue-900" title="Ver">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        ${currentUser.role !== 'viewer' ? `
+                            <button onclick="editSoldier('${soldier.militaryId}')" class="text-green-600 hover:text-green-900" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        ` : ''}
+                        ${currentUser.role === 'administrator' ? `
+                            <button onclick="deleteSoldier('${soldier.militaryId}')" class="text-red-600 hover:text-red-900" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        ` : ''}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Update total items count
+            document.getElementById('totalItems').textContent = soldiers.length;
+            
+            // Update export buttons visibility based on role
+            const exportButtons = document.querySelectorAll('button[onclick^="export"]');
+            exportButtons.forEach(button => {
+                button.style.display = currentUser.role === 'viewer' ? 'none' : 'inline-flex';
+            });
+        }
+
+        // Search and filter functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const nationalityFilter = document.getElementById('nationalityFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            filterSoldiers(searchTerm, nationalityFilter, statusFilter);
+        });
+
+        document.getElementById('nationalityFilter').addEventListener('change', function(e) {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const nationalityFilter = e.target.value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            filterSoldiers(searchTerm, nationalityFilter, statusFilter);
+        });
+
+        document.getElementById('statusFilter').addEventListener('change', function(e) {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const nationalityFilter = document.getElementById('nationalityFilter').value;
+            const statusFilter = e.target.value;
+            filterSoldiers(searchTerm, nationalityFilter, statusFilter);
+        });
+
+        function filterSoldiers(searchTerm, nationality, status) {
+            const soldiers = JSON.parse(localStorage.getItem('soldiers')) || [];
+            const filteredSoldiers = soldiers.filter(soldier => {
+                const matchesSearch = 
+                    soldier.militaryId.toLowerCase().includes(searchTerm) ||
+                    soldier.fullName.toLowerCase().includes(searchTerm) ||
+                    soldier.nickname.toLowerCase().includes(searchTerm) ||
+                    (soldier.fiscalCode && soldier.fiscalCode.toLowerCase().includes(searchTerm)) ||
+                    (soldier.bankAccount && soldier.bankAccount.toLowerCase().includes(searchTerm));
+                
+                const matchesNationality = !nationality || soldier.nationality === nationality;
+                const matchesStatus = !status || soldier.status === status;
+
+                return matchesSearch && matchesNationality && matchesStatus;
+            });
+
+            displaySoldiers(filteredSoldiers);
+        }
+
+        function displaySoldiers(soldiers) {
+            const tbody = document.getElementById('soldiersTableBody');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            tbody.innerHTML = '';
+
+            soldiers.forEach(soldier => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${soldier.militaryId}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${soldier.fullName}</div>
+                        <div class="text-sm text-gray-500">${soldier.nickname}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="fi fi-${soldier.nationality.toLowerCase()} mr-2"></span>
+                        ${soldier.nationality}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${soldier.fiscalCode || '-'}</div>
+                        ${soldier.fiscalCodePhotos ? '<i class="fas fa-image text-blue-500 ml-2" title="Tiene fotos"></i>' : ''}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${soldier.bankAccount || '-'}</div>
+                        ${soldier.bankAccountPhoto ? '<i class="fas fa-image text-blue-500 ml-2" title="Tiene foto"></i>' : ''}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded-full ${
+                            soldier.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }">
+                            ${soldier.status === 'active' ? 'Activo' : 'Inactivo'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm flex items-center space-x-2">
+                        <button onclick="viewSoldier('${soldier.militaryId}')" class="text-blue-600 hover:text-blue-900" title="Ver">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        ${currentUser.role !== 'viewer' ? `
+                            <button onclick="editSoldier('${soldier.militaryId}')" class="text-green-600 hover:text-green-900" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        ` : ''}
+                        ${currentUser.role === 'administrator' ? `
+                            <button onclick="deleteSoldier('${soldier.militaryId}')" class="text-red-600 hover:text-red-900" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        ` : ''}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Export functions
+        function exportToExcel() {
+            const soldiers = JSON.parse(localStorage.getItem('soldiers')) || [];
+            if (soldiers.length === 0) {
+                alert('No hay datos para exportar');
+                return;
+            }
+
+            // Create workbook data
+            let csv = 'ID Militar,Nombre Completo,Apodo,Nacionalidad,Teléfono,Grupo Sanguíneo,Código Fiscal,Cuenta Bancaria,Fecha de Contrato,Fotos de Código Fiscal,Foto de Cuenta Bancaria,Foto de Pasaporte,Foto de Traducción de Pasaporte\n';
+            
+            soldiers.forEach(soldier => {
+                csv += `${soldier.militaryId},${soldier.fullName},${soldier.nickname},${soldier.nationality},${soldier.phone},${soldier.bloodType},${soldier.fiscalCode || ''},${soldier.bankAccount || ''},${soldier.contractDate || ''},${soldier.fiscalCodePhotos || ''},${soldier.bankAccountPhoto || ''},${soldier.passportPhoto || ''},${soldier.passportTranslationPhoto || ''}\n`;
+            });
+
+            // Create blob and download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'soldados.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function exportToPDF() {
+            const soldiers = JSON.parse(localStorage.getItem('soldiers')) || [];
+            if (soldiers.length === 0) {
+                alert('No hay datos para exportar');
+                return;
+            }
+
+            // Create PDF content with enhanced styling for images
+            let content = `
+                <html>
+                <head>
+                    <style>
+                        body { font-family: Arial, sans-serif; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        h1 { color: #333; }
+                        .document-section { margin-top: 20px; }
+                        .document-title { font-weight: bold; margin-bottom: 10px; }
+                        .document-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+                        .document-item { border: 1px solid #ddd; padding: 10px; }
+                        img { max-width: 200px; height: auto; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Listado de Soldados</h1>
+                    <table>
+                        <tr>
+                            <th>ID Militar</th>
+                            <th>Nombre Completo</th>
+                            <th>Nacionalidad</th>
+                            <th>Código Fiscal</th>
+                            <th>Cuenta Bancaria</th>
+                            <th>Estado</th>
+                        </tr>
+            `;
+
+            soldiers.forEach(soldier => {
+                content += `
+                    <tr>
+                        <td>${soldier.militaryId}</td>
+                        <td>${soldier.fullName}</td>
+                        <td>${soldier.nationality}</td>
+                        <td>${soldier.fiscalCode || '-'}</td>
+                        <td>${soldier.bankAccount || '-'}</td>
+                        <td>${soldier.status === 'active' ? 'Activo' : 'Inactivo'}</td>
+                    </tr>
+                `;
+
+                // Add document section for each soldier
+                if (soldier.fiscalCodePhotos || soldier.bankAccountPhoto || soldier.passportPhoto || soldier.passportTranslationPhoto) {
+                    content += `
+                        <tr>
+                            <td colspan="6">
+                                <div class="document-section">
+                                    <div class="document-title">Documentos de ${soldier.fullName}</div>
+                                    <div class="document-grid">
+                    `;
+
+                    if (soldier.fiscalCodePhotos) {
+                        content += `
+                            <div class="document-item">
+                                <strong>Fotos de Código Fiscal:</strong><br>
+                                ${soldier.fiscalCodePhotos}
+                            </div>
+                        `;
+                    }
+
+                    if (soldier.bankAccountPhoto) {
+                        content += `
+                            <div class="document-item">
+                                <strong>Foto de Cuenta Bancaria:</strong><br>
+                                ${soldier.bankAccountPhoto}
+                            </div>
+                        `;
+                    }
+
+                    if (soldier.passportPhoto) {
+                        content += `
+                            <div class="document-item">
+                                <strong>Foto de Pasaporte:</strong><br>
+                                ${soldier.passportPhoto}
+                            </div>
+                        `;
+                    }
+
+                    if (soldier.passportTranslationPhoto) {
+                        content += `
+                            <div class="document-item">
+                                <strong>Foto de Traducción de Pasaporte:</strong><br>
+                                ${soldier.passportTranslationPhoto}
+                            </div>
+                        `;
+                    }
+
+                    content += `
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+
+            content += `
+                    </table>
+                </body>
+                </html>
+            `;
+
+            // Create a new window for printing
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(content);
+            printWindow.document.close();
+            
+            // Wait for content to load then print
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 250);
+        }
+
+        // CRUD operations
+        function viewSoldier(id) {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            window.location.href = `index.html?id=${id}&mode=view`;
+        }
+
+        function editSoldier(id) {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser || currentUser.role === 'viewer') {
+                alert('No tienes permisos para editar registros');
+                return;
+            }
+
+            window.location.href = `index.html?id=${id}&mode=edit`;
+        }
+
+        function deleteSoldier(id) {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser || currentUser.role !== 'administrator') {
+                alert('No tienes permisos para eliminar registros');
+                return;
+            }
+
+            if (confirm('¿Está seguro de eliminar este registro?')) {
+                let soldiers = JSON.parse(localStorage.getItem('soldiers')) || [];
+                const soldierToDelete = soldiers.find(s => s.militaryId === id);
+                
+                if (!soldierToDelete) {
+                    alert('Soldado no encontrado');
+                    return;
+                }
+
+                soldiers = soldiers.filter(s => s.militaryId !== id);
+                localStorage.setItem('soldiers', JSON.stringify(soldiers));
+                
+                // Show success notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center';
+                notification.innerHTML = `
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span>Registro eliminado exitosamente</span>
+                `;
+                document.body.appendChild(notification);
+                
+                // Remove notification after 3 seconds
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+                
+                loadSoldiers();
+            }
+        }
+
+        // Initialize nationality filter options
+        function initializeFilters() {
+            const soldiers = JSON.parse(localStorage.getItem('soldiers')) || [];
+            const nationalities = [...new Set(soldiers.map(s => s.nationality))];
+            const nationalityFilter = document.getElementById('nationalityFilter');
+            
+            nationalityFilter.innerHTML = '<option value="">Todas las nacionalidades</option>';
+            nationalities.forEach(nationality => {
+                nationalityFilter.innerHTML += `
+                    <option value="${nationality}">
+                        <span class="fi fi-${nationality.toLowerCase()}"></span>
+                        ${nationality}
+                    </option>
+                `;
+            });
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+
+        // Language menu toggle
+        const languageButton = document.getElementById('languageButton');
+        const languageMenu = document.getElementById('languageMenu');
+        
+        languageButton.addEventListener('click', () => {
+            languageMenu.classList.toggle('hidden');
+        });
+
+        // Close language menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!languageButton.contains(e.target) && !languageMenu.contains(e.target)) {
+                languageMenu.classList.add('hidden');
+            }
+        });
+
+        // Initialize
+        checkAuth();
+        loadSoldiers();
+        initializeFilters();
+        updatePageLanguage();
+
+        // Update current language display
+        const currentLang = localStorage.getItem('preferredLanguage') || 'es';
+        document.getElementById('currentLanguage').textContent = currentLang.toUpperCase();
+    </script>
+</body>
+</html>
